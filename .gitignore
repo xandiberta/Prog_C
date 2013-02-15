@@ -1,17 +1,1378 @@
-# Object files
-*.o
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+#include <conio.h>
+#include <windows.h>
 
-# Libraries
-*.lib
-*.a
+//ponteiros para os arquivos
+FILE *pUsuario, *pFuncionario, *pProducao, *pInvestimento, *pLucro;
+FILE *cUsuario, *cFuncionario, *cProducao, *cInvestimento, *cLucro;
 
-# Shared objects (inc. Windows DLLs)
-*.dll
-*.so
-*.so.*
-*.dylib
+//estruturas
+typedef struct Usuario {
+        int codigo;
+        char nome[50];
+        char sobrenome[50];
+        char usuario[20];        
+        char senha[20];
+        int perfil;
+        int situacao;
+};Usuario u;
+typedef struct Funcionario {
+        int codigo;
+        char nome[50];
+        char sobrenome[50];
+        char usuario[20];
+        char senha[20];
+        char cpf[64];
+        char cargo[50];
+        float salario; 
+        int situacao;
+}; Funcionario f;
+typedef struct Producao {
+        int codigo;
+        char nome[50];
+        char inicioAtividade[50];
+        char previsaoEnceramento[50];
+        int situacao;
+}; Producao p;
+typedef struct Investimento {
+        int codigo;
+        int codigo_prod;
+        char descricao[50];
+        float valor;
+        int situacao;
+}; Investimento i;
+typedef struct Lucro {
+        int codigo;
+        int codigo_prod;
+        char descricao[50];
+        float valor;
+        int situacao;
+}; Lucro l;
+// funcao que inicia os arquivos executada na primeira vez que executar o programa
+void inicializarArquivos(){ 
+     int c1 = 1000;
+     if(fopen("usuario.txt","r")== NULL){     
+       pUsuario = fopen("usuario.txt","w");       
+       fclose(pUsuario);
+     }
+     if(fopen("contUsuario.txt","r")== NULL){     
+       cUsuario = fopen("contUsuario.txt","w");          
+       fwrite(&c1, sizeof(int), 1, cUsuario);
+       fclose(cUsuario);
+     }
+     if(fopen("funcionario.txt","r")== NULL){     
+       pFuncionario = fopen("funcionario.txt","w");       
+       fclose(pFuncionario);
+     }
+     if(fopen("contFuncionario.txt","r")== NULL){     
+       cFuncionario = fopen("contFuncionario.txt","w");          
+       fwrite(&c1, sizeof(int), 1, cFuncionario);
+       fclose(cFuncionario);
+     }
+     if(fopen("producao.txt","r")== NULL){     
+       pProducao = fopen("producao.txt","w");       
+       fclose(pProducao);
+     }
+     if(fopen("contProducao.txt","r")== NULL){     
+       cProducao = fopen("contProducao.txt","w");          
+       fwrite(&c1, sizeof(int), 1, cProducao);
+       fclose(cProducao);
+     }
+     if(fopen("investimento.txt","r")== NULL){     
+       pInvestimento = fopen("investimento.txt","w");       
+       fclose(pInvestimento);
+     }   
+     if(fopen("contInvestimento.txt","r")== NULL){     
+       cInvestimento = fopen("contInvestimento.txt","w");          
+       fwrite(&c1, sizeof(int), 1, cInvestimento);
+       fclose(cInvestimento);
+     }  
+     if(fopen("lucro.txt","r")== NULL){     
+       pLucro = fopen("lucro.txt","w");       
+       fclose(pLucro);
+     }   
+     if(fopen("contLucro.txt","r")== NULL){     
+       cLucro = fopen("contLucro.txt","w");          
+       fwrite(&c1, sizeof(int), 1, cLucro);
+       fclose(cLucro);
+     }   
+}
+//funcao para incrementar o codigo
+int buscarContadorUsuario(){
+    int cont,cont1;
+    cUsuario = fopen("contUsuario.txt","rb+");
+    fread(&cont, sizeof(int), 1, cUsuario); //pega ultimo codigo
+    fseek(cUsuario, 0, SEEK_SET); //posiciona o ponteiro
+    cont1 = cont+1;
+    fwrite(&cont1, sizeof(int),1,cUsuario);//escreve o cont1 no final do arquivo
+    fclose(cUsuario);
+    return cont;
+}
 
-# Executables
-*.exe
-*.out
-*.app
+int buscarContadorFuncionario(){
+    int cont,cont1;
+    cFuncionario = fopen("contFuncionario.txt","rb+");
+    fread(&cont, sizeof(int), 1, cFuncionario);
+    fseek(cFuncionario, 0, SEEK_SET);
+    cont1 = cont+1;
+    fwrite(&cont1, sizeof(int),1,cFuncionario);
+    fclose(cFuncionario);
+    return cont;
+}
+
+int buscarContadorProducao(){
+    int cont,cont1;
+    cProducao = fopen("contProducao.txt","rb+");
+    fread(&cont, sizeof(int), 1, cProducao);
+    fseek(cProducao, 0, SEEK_SET);
+    cont1 = cont+1;
+    fwrite(&cont1, sizeof(int),1,cProducao);
+    fclose(cProducao);
+    return cont;
+}
+
+int buscarContadorInvestimento(){
+    int cont,cont1;
+    cInvestimento = fopen("contInvestimento.txt","rb+");
+    fread(&cont, sizeof(int), 1, cInvestimento);
+    fseek(cInvestimento, 0, SEEK_SET);
+    cont1 = cont+1;
+    fwrite(&cont1, sizeof(int),1,cInvestimento);
+    fclose(cInvestimento);
+    return cont;
+}
+
+int buscarContadorLucro(){
+    int cont,cont1;
+    cLucro = fopen("contLucro.txt","rb+");
+    fread(&cont, sizeof(int), 1, cLucro);
+    fseek(cLucro, 0, SEEK_SET);
+    cont1 = cont+1;
+    fwrite(&cont1, sizeof(int),1,cLucro);
+    fclose(cLucro);
+    return cont;
+}
+
+// funcao para listagem dos registros
+void listarUsuario() { 
+     printf("\n\nUSUARIOS CADASTRADOS: \n\n");
+     printf("CODIGO   NOME       SOBRENOME   USUARIO  SENHA   PERFIL");
+     printf("\n-------------------------------------------------");
+     pUsuario = fopen("usuario.txt","rb");
+     while(!feof(pUsuario)){ // enquanto nao chegar ao fim do aqruivo ele lista
+       if(fread(&u,sizeof(Usuario),1,pUsuario)){//aqui le os arquivos para mostra         
+          if(u.situacao!=1){ //se o registro for inativo ee nao mostra                                     
+         printf("\n %d   | %s   | %s   | %s   | %s   | %d   |", u.codigo, u.nome, u.sobrenome, u.usuario, u.senha, u.perfil);
+         printf("\n--------------------------------------------------");
+          }
+       }
+       else printf("\n------ FIM DOS REGISTROS -------.\n");
+     } 
+     fclose(pUsuario);    
+     getch();
+}
+
+void listarFuncionario() { 
+     printf("\n\nFUNCIONARIOS CADASTRADOS: \n\n");
+     printf("CODIGO   NOME      SOBRENOME   USUARIO  CARGO   SALARIO");
+     printf("\n-------------------------------------------------");
+     pFuncionario = fopen("funcionario.txt","rb");
+     while(!feof(pFuncionario)){
+       if(fread(&f,sizeof(Funcionario),1,pFuncionario)){
+         if(u.situacao!=1){
+         printf("\n %d   | %s   | %s   | %s   | %s   | %.2f   |",f.codigo, f.nome, f.sobrenome, f.usuario,  f.cargo, f.salario);
+         printf("\n-------------------------------------------------");
+         }
+       }
+       else printf("\n------ FIM DOS REGISTROS -------.\n");
+     } 
+     fclose(pFuncionario);    
+     getch();
+}
+
+void listarProducao() {
+     printf("\n\ATIVIDADES DE PRODUCAO CADASTRADAS: \n\n");
+     printf("CODIGO   NOME     INI.ATIVIDADE   PREV.ENCERAMENTO");
+     printf("\n-------------------------------------------------");
+     pProducao = fopen("producao.txt","rb");
+     while(!feof(pProducao)){
+       if(fread(&p,sizeof(Producao),1,pProducao)){
+        if(u.situacao!=1){
+         printf("\n %d   | %s   | %s   | %s   |",p.codigo, p.nome, p.inicioAtividade, p.previsaoEnceramento);
+          printf("\n-------------------------------------------------");        
+          }
+       }
+       else{ printf("\n------ FIM DOS REGISTROS -------.\n");}
+     }   
+     fclose(pProducao);  
+     getch();
+}
+
+void listarInvestimento() {
+     printf("\n\nINVESTIMENTOS CADASTRADOS: \n\n");
+     printf("CODIGO   CODIGO PROD.    DESCRICAO     VALOR");
+     printf("\n-------------------------------------------------");
+     pInvestimento = fopen("investimento.txt","rb");
+     while(!feof(pInvestimento)){
+       if(fread(&i,sizeof(Investimento),1,pInvestimento)){
+         if(u.situacao!=1){
+         printf("\n %d   |  %d   | %s   | %.2f   |", i.codigo, i.codigo_prod, i.descricao, i.valor);
+         printf("\n-------------------------------------------------");
+         }
+       }
+       else printf("\n------ FIM DOS REGISTROS -------.\n");
+     }
+     fclose(pInvestimento);     
+     getch();
+}
+
+void listarLucro() { 
+     printf("\n\nFUNCIONARIOS CADASTRADOS: \n\n");
+     printf("CODIGO   CODIGO PROD.    DESCRICAO     VALOR");
+     printf("\n-------------------------------------------------");
+     pLucro = fopen("lucro.txt","rb");
+     while(!feof(pLucro)){
+       if(fread(&l,sizeof(Lucro),1,pLucro)){
+         if(u.situacao!=1){
+         printf("\n %d   |  %d   | %s   | %.2f   |",l.codigo, l.codigo_prod, l.descricao, l.valor);
+         printf("\n-------------------------------------------------");
+         }
+       }
+       else printf("\n------ FIM DOS REGISTROS -------.\n");
+     } 
+     fclose(pLucro);    
+     getch();
+}
+
+void listarCustoProducao() { 
+     system("cls");
+     int rec_codigo;
+     listarProducao();
+     printf("\n\nDIGITE O CODIGO DE UMA ATIVIDADE DE PRODUCAO\nLISTADA ACIMA PARA GERAR O RELATORIO DE CUSTO");
+     printf("\nCODIGO:");
+     scanf("%d", &rec_codigo);
+     printf("\n-------------------------------------------------");
+     pInvestimento = fopen("investimento.txt","rb");
+     float custo_total;     
+     while(!feof(pInvestimento)){
+       if(fread(&i,sizeof(Investimento),1,pInvestimento)){
+          if(rec_codigo==i.codigo_prod){
+                   if(u.situacao!=1){
+                    printf("\n %d   |  %d   | %s   | %.2f   |", i.codigo, i.codigo_prod, i.descricao, i.valor);
+                    printf("\n-------------------------------------------------");
+                    custo_total=custo_total+i.valor;
+                    }
+               }
+       }
+       else printf("\n---------------------------------------------------.\n");
+     }     
+       printf("\nTOTAL DE CUSTO/DESPESAS DA ATIVIDADE: %.2f", custo_total);     
+     getch();
+}
+
+void listarLucroProducao() {
+     system("cls"); 
+     int rec_codigo;
+     listarProducao();
+     printf("\n\nDIGITE O CODIGO DE UMA ATIVIDADE DE PRODUCAO LISTADA\nACIMA PARA GERAR O RELATORIO DE LUCRO BRUTO");
+     printf("\nCODIGO:");
+     scanf("%d", &rec_codigo);
+     printf("\n-------------------------------------------------");
+     pLucro = fopen("lucro.txt","rb");
+     float lucro_total;     
+     while(!feof(pLucro)){
+       if(fread(&l,sizeof(Lucro),1,pLucro)){
+          if(rec_codigo==l.codigo_prod){
+                    if(u.situacao!=1){
+                    printf("\n %d   | %d   | %s   | %.2f   |", l.codigo, l.codigo_prod, l.descricao, l.valor);
+                    printf("\n-------------------------------------------------");
+                    lucro_total=lucro_total+l.valor;
+                    }
+        }
+       }
+       else printf("\n---------------------------------------------------.\n");
+     }     
+       printf("\nTOTAL DE LUCRO(BRUTO) DA ATIVIDADE: %.2f", lucro_total);     
+     getch();
+}
+
+void listarLucroLiquido() { 
+     system("cls");
+     int rec_codigo;
+     listarProducao();
+     printf("\n\nDIGITE O CODIGO DE UMA ATIVIDADE DE PRODUCAO LISTADA\nACIMA PARA GERAR O RELATORIO DE LUCRO LIQUIDO");
+     printf("\nCODIGO:");
+     scanf("%d", &rec_codigo);     
+     printf("\nINVESTIMENTOS:");    
+     printf("\n-------------------------------------------------");
+     pInvestimento = fopen("investimento.txt","rb");
+     float custo_total; 
+     while(!feof(pInvestimento)){
+       if(fread(&i,sizeof(Investimento),1,pInvestimento)){
+          if(rec_codigo==i.codigo_prod){
+                    if(u.situacao!=1){
+                    printf("\n %d   | %d   | %s   | %.2f   |", i.codigo, i.codigo_prod, i.descricao, i.valor);
+                    printf("\n-------------------------------------------------");
+                    custo_total=custo_total+i.valor;
+                    }
+        }
+       }
+       else printf("\n---------------------------------------------------.\n");
+     }     
+     fclose(pInvestimento);     
+     printf("\nLUCROS:");
+     printf("\n-------------------------------------------------");
+     pLucro = fopen("lucro.txt","rb");
+     float lucro_total;    
+     while(!feof(pLucro)){
+       if(fread(&l,sizeof(Lucro),1,pLucro)){
+          if(rec_codigo==l.codigo_prod){
+                    if(u.situacao!=1){
+                    printf("\n %d   | %d   | %s   | %.2f   |", l.codigo, l.codigo_prod, l.descricao, l.valor);
+                    printf("\n-------------------------------------------------");
+                    lucro_total=lucro_total+l.valor;
+                    }
+        }
+       }
+       else printf("\n---------------------------------------------------.\n");
+    }     
+     fclose(pLucro);
+     printf("\nTOTAL DE CUSTO/DESPESAS DA ATIVIDADE: %.2f", custo_total);
+     printf("\nTOTAL DE LUCRO(BRUTO) DA ATIVIDADE: %.2f", lucro_total);     
+     float lucro_liquido;
+     lucro_liquido=lucro_total-custo_total;
+     printf("\n\nTOTAL LUCRO(LIQUIDO) DA ATIVIDADE: %.2f", lucro_liquido);    
+getch();
+}
+
+void listarAtividadeMaisRentavel() { 
+     system("cls");
+     int rec_codigo; 
+     pProducao = fopen("producao.txt","rb");
+     while(!feof(pProducao)){
+       if(fread(&p,sizeof(Producao),1,pProducao)){
+               rec_codigo=p.codigo;
+               printf("\nATIVIDADE: %s", p.nome);
+               pInvestimento = fopen("investimento.txt","rb");
+                 float custo_total; 
+                 while(!feof(pInvestimento)){
+                   if(fread(&i,sizeof(Investimento),1,pInvestimento)){
+                      if(rec_codigo==i.codigo_prod){
+                               if(u.situacao!=1){ 
+                                custo_total=custo_total+i.valor;
+                                }
+                          }
+                    }
+                 }     
+                 fclose(pInvestimento);
+                 pLucro = fopen("lucro.txt","rb");
+                 float lucro_total;    
+                 while(!feof(pLucro)){
+                   if(fread(&l,sizeof(Lucro),1,pLucro)){
+                      if(rec_codigo==l.codigo_prod){
+                                if(u.situacao!=1){
+                                lucro_total=lucro_total+l.valor;
+                                }
+                       }
+                  }
+                }     
+                 fclose(pLucro);    
+                 float lucro_liquido;
+                 lucro_liquido=lucro_total-custo_total;
+                 printf("\n CUSTO     LUCRO      LUCRO LIQUIDO");
+                 printf("\n %.2f + %.2f = %.2f\n", custo_total, lucro_total, lucro_liquido);    
+            }
+     }   
+     fclose(pProducao);  
+     getch();
+}
+
+void editarUsuario(){  //funcao pra editar usuario       
+       int val;
+       int pos;
+       int conf=0;
+       listarUsuario();
+       pUsuario = fopen("usuario.txt","r+b");
+       printf("Digite o codigo do registro para alterar.\n");
+       scanf("%d",&val);
+       while(!feof(pUsuario)){ //laco pra percore o arquivo
+             if(fread(&u,sizeof(Usuario),1,pUsuario)){ //leitura das informacoes no arquivo
+                pos++; //posicai incrementada a cada laco
+                if(val == u.codigo){ //aqui se o valor de pesquiza for encontrado vai para a edicao
+                    printf("Dado encontrado! Posicao %d\n", pos);
+                    pos=pos-1;
+                    printf("\n %d   | %s   | %s   | %s   | %s   | %d   |", u.codigo, u.nome, u.sobrenome, u.usuario, u.senha, u.perfil);
+                    fseek(pUsuario,pos*sizeof(struct Usuario),SEEK_SET); //posiciona o ponteiro no inicio do registro
+                    getch();
+                    printf("\nEDITAR REGISTRO");                    
+                    printf("\nEDITAR SENHA?\n1=SIM\n0=NAO\n");
+                    scanf("%d", &conf);
+                    if(conf==1){                        ///aqui pego uma nova senha
+                                printf("\nSENHA: ");
+                                fflush(stdin);
+                                gets(u.senha); 
+                           }
+                                fwrite(&u, sizeof(Usuario), 1, pUsuario); //inserir nova senha o registro
+                                printf("EDITADO COM SUCESSO!");
+                                fclose(pUsuario);
+                                break;
+                    }
+            }
+        }                   
+        fclose(pUsuario);
+     getch();
+}
+
+void excluirUsuario(){  //funcao pra excluir usuario       
+       int val;
+       int pos;
+       int conf=0;
+       listarUsuario();
+       pUsuario = fopen("usuario.txt","r+b");
+       printf("Digite o codigo do registro para excluir.\n");
+       scanf("%d",&val);
+       while(!feof(pUsuario)){ //laco pra percore o arquivo
+             if(fread(&u,sizeof(Usuario),1,pUsuario)){ //leitura das informacoes no arquivo
+                pos++; //posicao incrementada a cada laco
+                if(val == u.codigo){ //aqui se o valor de pesquiza for encontrado vai para a exclusao
+                    printf("Dado encontrado! Posicao %d\n", pos);
+                    pos=pos-1;
+printf("\n %d   | %s   | %s   | %s   | %s   | %d   |", u.codigo, u.nome, u.sobrenome, u.usuario, u.senha, u.perfil);
+                    fseek(pUsuario,pos*sizeof(struct Usuario),SEEK_SET); //posiciona o ponteiro no inicio do registro
+                    getch();                    
+                    printf("\nEXCLUIR USUARIO?\n1=SIM\n0=NAO\n");
+                    scanf("%d", &u.situacao);    //altera a situacao do registro para excluido
+                                fwrite(&u, sizeof(Usuario), 1, pUsuario); //inserir nova situacao no registro
+                                printf("EXCLUIDO COM SUCESSO!");
+                                fclose(pUsuario);
+                                break;
+                    }
+            }
+        }                   
+        fclose(pUsuario);
+     getch();
+}
+
+void editarFuncionario(){       
+       int val;
+       int pos;
+       int conf=0;
+       listarFuncionario();
+       pFuncionario = fopen("funcionario.txt","r+b");
+       printf("Digite o codigo do registro para alterar.\n");
+       scanf("%d",&val);
+       while(!feof(pFuncionario)){
+             if(fread(&f,sizeof(Funcionario),1,pFuncionario)){
+                pos++;
+                if(val == f.codigo){ 
+                    printf("Dado encontrado! Posicao %d\n", pos);
+                    pos=pos-1;
+                    printf("\n %d   | %s   | %s   | %s   | %s   | %.2f   |",f.codigo, f.nome, f.sobrenome, f.usuario,  f.cargo, f.salario);
+                    fseek(pFuncionario, pos*sizeof(struct Funcionario), SEEK_SET);
+                    getch();
+                    printf("\nEDITAR REGISTRO");                    
+                    printf("\nEDITAR NOME?\n1=SIM\n0=NAO\n");
+                    scanf("%d", &conf);
+                    if(conf==1){
+                                printf("\nNOVO NOME: ");
+                                fflush(stdin);
+                                gets(f.nome); 
+                           }
+                                fwrite(&f, sizeof(Funcionario), 1, pFuncionario);
+                                printf("EDITADO COM SUCESSO!");
+                                fclose(pFuncionario);
+                                break;
+                    }else{printf("Registro nao encontrado");}
+            }
+        }
+        fclose(pFuncionario);
+     getch();
+}
+
+void excluirFuncionario(){
+       int val;
+       int pos;
+       int conf=0;
+       listarFuncionario();
+       pFuncionario = fopen("funcionario.txt","r+b");
+       printf("Digite o codigo do registro para excluir.\n");
+       scanf("%d",&val);
+       while(!feof(pFuncionario)){
+             if(fread(&f,sizeof(Funcionario),1,pFuncionario)){
+                pos++;
+                if(val == f.codigo){ 
+                    printf("Dado encontrado! Posicao %d\n", pos);
+                    pos=pos-1;
+                    printf("\n %d   | %s   | %s   | %s   | %s   | %.2f   |",f.codigo, f.nome, f.sobrenome, f.usuario,  f.cargo, f.salario);
+                    fseek(pFuncionario, pos*sizeof(struct Funcionario), SEEK_SET);
+                    getch();                   
+                    printf("\nnEXCLUIR REGISTRO?\n1=SIM\n0=NAO\n");
+                    scanf("%d", &f.situacao);
+                                fwrite(&f, sizeof(Funcionario), 1, pFuncionario);
+                                printf("EXCLUIDO COM SUCESSO!");
+                                fclose(pFuncionario);
+                                break;
+                    }else{printf("Registro nao encontrado");}
+            }
+        }
+        fclose(pFuncionario);
+     getch();
+}
+
+void editarProducao(){
+       int val;
+       int pos;
+       int conf=0;
+       listarProducao();
+       pProducao = fopen("producao.txt","r+b");
+       printf("Digite o codigo do registro para alterar.\n");
+       scanf("%d",&val);       
+       while(!feof(pProducao)){
+             if(fread(&p,sizeof(Producao),1,pProducao)){
+                pos++;
+                if(val == p.codigo){ 
+                    printf("Dado encontrado! Posicao %d\n", pos);
+                    pos=pos-1;
+                    printf("\n %d   | %s   | %s   | %s   |",p.codigo, p.nome, p.inicioAtividade, p.previsaoEnceramento);
+                    fseek(pProducao, pos*sizeof(struct Producao), SEEK_SET);
+                    getch();
+                    printf("\nEDITAR REGISTRO");
+                    printf("\nEDITAR NOME?\n1=SIM\n0=NAO");
+                    scanf("%d", &conf);
+                    if(conf==1){
+                                printf("\nNOVO NOME: ");
+                                fflush(stdin);
+                                gets(p.nome); 
+                           }
+                                fwrite(&p, sizeof(Producao), 1, pProducao);
+                                printf("EDITADO COM SUCESSO!");
+                                fclose(pProducao);
+                                break;
+                    }else{printf("Registro nao encontrado");}
+            }
+        }
+        fclose(pProducao);
+     getch();
+}
+
+void excluirProducao(){       
+       int val;
+       int pos;
+       int conf=0;
+       listarProducao();
+       pProducao = fopen("producao.txt","r+b");
+       printf("Digite o codigo do registro para excluir.\n");
+       scanf("%d",&val);
+       while(!feof(pProducao)){
+             if(fread(&p,sizeof(Producao),1,pProducao)){
+                pos++;
+                if(val == p.codigo){ 
+                    printf("Dado encontrado! Posicao %d\n", pos);
+                    pos=pos-1;
+                    printf("\n %d   | %s   | %s   | %s   |",p.codigo, p.nome, p.inicioAtividade, p.previsaoEnceramento);
+                    fseek(pProducao, pos*sizeof(struct Producao), SEEK_SET);
+                    getch();
+                    printf("\nEXCLUIR REGISTRO?\n1=SIM\n0=NAO");
+                    scanf("%d", &p.situacao);
+                                fwrite(&p, sizeof(Producao), 1, pProducao);
+                                printf("EXCLUIDO COM SUCESSO!");
+                                fclose(pProducao);
+                                break;
+                    }else{printf("Registro nao encontrado");}
+            }
+        }
+        fclose(pProducao);
+     getch();
+}
+
+void editarInvestimento(){       
+       int val;
+       int pos;
+       int conf=0;
+       listarInvestimento();
+       pInvestimento = fopen("investimento.txt","r+b");
+       printf("Digite o codigo do registro para alterar.\n");
+       scanf("%d",&val);
+       while(!feof(pInvestimento)){
+             if(fread(&i,sizeof(Investimento),1,pInvestimento)){
+                pos++;
+                if(val == i.codigo){ 
+                    printf("Dado encontrado! Posicao %d\n", pos);
+                    pos=pos-1;                    
+                    printf("\n %d   |  %d   | %s   | %.2f   |", i.codigo, i.codigo_prod, i.descricao, i.valor);
+                    fseek(pInvestimento, pos*sizeof(struct Investimento), SEEK_SET);
+                    getch();
+                    printf("\nEDITAR REGISTRO");
+                    printf("\nEDITAR NOME?\n1=SIM\n0=NAO\n");
+                    scanf("%d", &conf);
+                    if(conf==1){
+                                printf("\nNOVO NOME: ");
+                                fflush(stdin);
+                                gets(i.descricao); 
+                           }
+                                fwrite(&i, sizeof(Investimento), 1, pInvestimento);
+                                printf("EDITADO COM SUCESSO!");
+                                fclose(pInvestimento);
+                                break;
+                    }else{printf("Registro nao encontrado");}
+            }
+        }
+        fclose(pInvestimento);
+     getch();
+}
+
+void excluirInvestimento(){       
+       int val;
+       int pos;
+       int conf=0;
+       listarInvestimento();       
+       pInvestimento = fopen("investimento.txt","r+b");
+       printf("Digite o codigo do registro para excluir.\n");
+       scanf("%d",&val);
+       while(!feof(pInvestimento)){
+             if(fread(&i,sizeof(Investimento),1,pInvestimento)){
+                pos++;                
+                if(val == i.codigo){ 
+                    printf("Dado encontrado! Posicao %d\n", pos);
+                    pos=pos-1;                    
+                    printf("\n %d   |  %d   | %s   | %.2f   |", i.codigo, i.codigo_prod, i.descricao, i.valor);
+                    fseek(pInvestimento, pos*sizeof(struct Investimento), SEEK_SET);
+                    getch();
+                    printf("\nEXCLUIR REGISTRO?\n1=SIM\n0=NAO\n");
+                    scanf("%d", &i.situacao);
+                                fwrite(&i, sizeof(Investimento), 1, pInvestimento);
+                                printf("EXCLUIDO COM SUCESSO!");
+                                fclose(pInvestimento);
+                                break;
+                    }else{printf("Registro nao encontrado");}
+            }
+        }
+        fclose(pInvestimento);
+     getch();
+}
+
+void editarLucro(){
+       int val;
+       int pos;
+       int conf=0;
+       listarLucro();
+       pLucro = fopen("lucro.txt","r+b");
+       printf("Digite o codigo do registro para alterar.\n");
+       scanf("%d",&val);
+       while(!feof(pLucro)){
+             if(fread(&l,sizeof(Lucro),1,pLucro)){
+                pos++;
+                if(val == l.codigo){ 
+                    printf("Dado encontrado! Posicao %d\n", pos);
+                    pos=pos-1;
+                    printf("\n %d   | %d   | %s   | %.2f   |", l.codigo, l.codigo_prod, l.descricao, l.valor);
+                    fseek(pLucro, pos*sizeof(struct Lucro), SEEK_SET);
+                    getch();
+                    printf("\nEDITAR REGISTRO");
+                    printf("\nEDITAR NOME?\n1=SIM\n0=NAO\n");
+                    scanf("%d", &conf);
+                    if(conf==1){
+                                printf("\nNOVA DESCRICAO: ");
+                                fflush(stdin);
+                                gets(l.descricao); 
+                           }
+                                fwrite(&l, sizeof(Lucro), 1, pLucro);
+                                printf("EDITADO COM SUCESSO!");
+                                fclose(pLucro);
+                                break;
+                    }else{printf("Registro nao encontrado");}
+            }
+        }
+        fclose(pLucro);
+     getch();
+}
+
+void excluirLucro(){
+       int val;
+       int pos;
+       int conf=0;
+       listarLucro();
+       pLucro = fopen("lucro.txt","r+b");
+       printf("Digite o codigo do registro para excluir.\n");
+       scanf("%d",&val);       
+       while(!feof(pLucro)){
+             if(fread(&l,sizeof(Lucro),1,pLucro)){
+                pos++;
+                if(val == l.codigo){ 
+                    printf("Dado encontrado! Posicao %d\n", pos);
+                    pos=pos-1;                    
+                    printf("\n %d   | %d   | %s   | %.2f   |", l.codigo, l.codigo_prod, l.descricao, l.valor);
+                    fseek(pLucro, pos*sizeof(struct Lucro), SEEK_SET);
+                    getch();
+                    printf("\nEXCLUIR REGISTRO?\n1=SIM\n0=NAO\n");
+                    scanf("%d", &l.situacao);
+                                fwrite(&l, sizeof(Lucro), 1, pLucro);
+                                printf("EXCLUIDO COM SUCESSO!");
+                                fclose(pLucro);
+                                break;
+                    }else{printf("Registro nao encontrado");}
+            }
+        }
+        fclose(pLucro);
+     getch();
+}
+
+void cadastrarFuncionario(){          
+          system("cls");
+          printf("\tCADASTRO DE FUNCIONARIO: \n");
+          pFuncionario = fopen("funcionario.txt","ab");
+          if(pFuncionario == NULL){
+          printf("\nERRO AO ABRIR ARQUIVO!");
+                  }else {
+                        f.codigo = buscarContadorFuncionario(); 
+                        //pega informacoes para cadastrar no arquivo
+                        printf("\nCADASTRANDO FUNCIONARIO DE CODIGO %d", f.codigo);
+                        printf("\nNOME: ");
+                        fflush(stdin);
+                        gets(f.nome);
+
+                        printf("\nSOBRENOME: ");
+                        fflush(stdin);
+                        gets(f.sobrenome);
+                        
+                        printf("\nUSUARIO: ");
+                        fflush(stdin);
+                        gets(f.usuario);
+                        
+                        printf("\nSENHA: ");
+                        fflush(stdin);
+                        gets(f.senha);
+                        
+                        /************ VALIDACAO DE CPF NAO FOI DESENVOLVIDAO PELO GRUPO************* */
+                        /*http://leocapetta.blogspot.com.br/2010/07/blog-post.html*/
+                        int cpf_valido=0;
+               
+                       while(cpf_valido==0){ 
+                       
+                       char validate[11][12] = { "00000000000",
+                                                 "01234567890",
+                                                 "11111111111",
+                                                 "22222222222",
+                                                 "33333333333",
+                                                 "44444444444",
+                                                 "55555555555",
+                                                 "66666666666",
+                                                 "77777777777",
+                                                 "88888888888",
+                                                 "99999999999"};
+                                  
+                                  char cpf[64];
+                                  int i, valido;
+                                  printf("\nCPF: ");
+                                  fflush(stdin);
+                                  scanf("%s", f.cpf);
+                                                            
+                                  if (strlen(f.cpf) != 11){
+                                          printf("CPF invalido\n");
+                                           }else{            
+                                              valido = 1;
+                                              for(i=0; i<11; i++){
+                                                     if(!strcmp(f.cpf,validate[i])){           
+                                                            printf("CPF invalido\n");
+                                                            valido = 0; 
+                                                            break;
+                                                     }
+                                              }
+                                              if(valido)
+                                                     printf("CPF valido\n");
+                                                     cpf_valido =1; 
+                                                     }
+                                    }
+
+                        printf("\nCARGO: ");
+                        fflush(stdin);
+                        gets(f.cargo);
+                                   
+                        printf("\nSALARIO: ");
+                        scanf("%f", &f.salario);          
+
+                        u.situacao=0;                             
+      
+                        printf("\nGRAVANDO NO ARQUIVO...\n");
+                        fwrite(&f, sizeof(Funcionario), 1, pFuncionario);
+                        printf("\nFUNCIONARIO %s GRAVADO!...\n", f.nome);
+                        fclose(pFuncionario);
+                        getch();
+                        system("cls");
+                        }               
+}
+
+void cadastrarProducao(){ //cadastro de funcionarios
+
+          system("cls");
+          printf("\tCADASTRO DE ATIVIDADES DE PRODUCAO: \n\n");
+          pProducao = fopen("producao.txt","ab");
+          if(pProducao == NULL){
+                            printf("\nERRO AO ABRIR ARQUIVO!");
+          }else {
+                p.codigo = buscarContadorProducao(); // pega um codigo incrementado dessa funcao
+                printf("CADASTRANDO PRODUCAO DE CODIGO %d", p.codigo);
+                
+                //pega informacoes para cadstrar no arquivo
+                                                      
+                printf("\nNOME: ");
+                fflush(stdin);
+                gets(p.nome);
+                                           
+                printf("\nINICIO DA ATIVIDADE: ");
+                fflush(stdin);
+                gets(p.inicioAtividade);
+                           
+                printf("\nPREVISAO DE ENCERAMENTO: ");
+                fflush(stdin);
+                gets(p.previsaoEnceramento); 
+                                           
+                u.situacao=0;                                                             
+                                           
+                printf("\nGRAVANDO NO ARQUIVO...\n");
+                fwrite(&p, sizeof(Producao), 1, pProducao);
+                printf("\nFORNECEDOR %s GRAVADO!...\n", p.nome);
+                fclose(pProducao);
+                getch();
+                system("cls");
+                }                                      
+}
+
+void cadastrarInvestimento(){
+
+          system("cls");
+          printf("\tCADASTRO INVESTIMENTO EM ATIVIDADES DE PRODUCAO: \n\n");
+          pInvestimento = fopen("investimento.txt","ab");
+          if(pInvestimento == NULL){
+                            printf("\nERRO AO ABRIR ARQUIVO!");
+          }else {
+                
+                i.codigo = buscarContadorInvestimento();
+                printf("CADASTRANDO USUARIO DE CODIGO %d", i.codigo);
+                
+                listarProducao();
+                printf("\n\nINFORME O CODIGO DE UMA ATIVIDADE LISTADA ACIMA");
+                printf("\nCODIGO: ");
+                scanf("%d", &i.codigo_prod);
+                      
+                printf("\nDESCRICAO DO INVESTIMENTO: ");
+                fflush(stdin);
+                gets(i.descricao);
+                           
+                printf("\nVALOR DO INVESTIMENTO: ");
+                scanf("%f", &i.valor);                                                                        
+
+                u.situacao=0;
+                                           
+                printf("\nGRAVANDO NO ARQUIVO...\n");
+                fwrite(&i, sizeof(Investimento), 1, pInvestimento);
+                printf("\nINVESTIMENTO %s GRAVADO!...\n", i.descricao);
+                fclose(pInvestimento);
+                getch();
+                system("cls");
+                }                                      
+}
+
+void cadastrarLucro(){
+     
+              system("cls");
+              printf("\tCADASTRO DE LUCRO DE PRODUCAO: \n");
+              pLucro = fopen("lucro.txt","ab");
+              if(pLucro == NULL){
+              printf("\nERRO AO ABRIR ARQUIVO!");
+                  }else {
+                 
+                l.codigo = buscarContadorLucro();
+                printf("CADASTRANDO USUARIO DE CODIGO %d", l.codigo);
+
+                listarProducao();
+                printf("\n\nINFORME O CODIGO DE UMA ATIVIDADE LISTADA ACIMA");
+                printf("\nCODIGO: ");
+                scanf("%d", &l.codigo_prod);
+                    
+                printf("\nDESCRICAO DO LUCRO: ");
+                fflush(stdin);
+                gets(l.descricao);
+                           
+                printf("\nVALOR DO LUCRO: ");
+                scanf("%f", &l.valor);   
+
+                u.situacao=0;                                                                     
+                                           
+                printf("\nGRAVANDO NO ARQUIVO...\n");
+                fwrite(&l, sizeof(Lucro), 1, pLucro);
+                printf("\nLUCRO %s GRAVADO!...\n", l.descricao);
+                fclose(pLucro);
+                getch();
+                system("cls");
+                }                                       
+}
+  
+void cadastrarUsuario(){
+          system("cls");
+          printf("\tCADASTRO USUARIO: \n\n");
+          pUsuario = fopen("usuario.txt","ab");
+          if(pUsuario == NULL){
+                            printf("\nERRO AO ABRIR ARQUIVO!");
+          }else {
+                u.codigo = buscarContadorUsuario();
+                printf("CADASTRANDO USUARIO DE CODIGO %d", u.codigo);
+                                                                      
+                printf("\nNOME: ");
+                fflush(stdin);
+                gets(u.nome);
+                                           
+                printf("\nSOBRENOME: ");
+                fflush(stdin);
+                gets(u.sobrenome);
+                           
+                printf("\nLOGIN: ");
+                fflush(stdin);
+                gets(u.usuario); 
+                
+                printf("\nSENHA: ");
+                fflush(stdin);
+                gets(u.senha);                           
+                                
+                printf("\nCADASTRO DE PERFIL:\n1 = ADMINISTRADOR\n2 = USUARIO\n");
+                scanf("%d", &u.perfil);
+
+                u.situacao=0;
+                                           
+                printf("\nGRAVANDO NO ARQUIVO...\n");
+                fwrite(&u, sizeof(Usuario), 1, pUsuario);
+                printf("\nUSUARIO %s GRAVADO!...\n", u.nome);
+                fclose(pUsuario);
+                getch();
+                system("cls");
+                }                                                 
+}
+
+void relatorios(){  //menu relatorios
+               int op;
+                   
+                 do{
+                     system("cls");
+                     printf("\t\tRELATORIOS\n\n");
+                     printf("\tO que deseja fazer?\n");
+                     printf("---------------------------------------\n");
+                     printf("1 - Custos de producao                |\n");
+                     printf("---------------------------------------\n");
+                     printf("2 - Lucros de producao                |\n");
+                     printf("---------------------------------------\n");
+                     printf("3 - Lucro Liquido de Producao         |\n");
+                     printf("---------------------------------------\n");
+                     printf("4 - Atividade Mais Rentavel           |\n");
+                     printf("---------------------------------------\n");
+                     printf("0 - Voltar                            |\n");
+                     printf("---------------------------------------\n");
+                     printf("OPCAO: ");
+                     scanf("%d",&op);
+                                                               
+                     switch (op){
+                            
+                        case 1:
+                             listarCustoProducao();
+                            break;
+                        case 2:           
+                             listarLucroProducao();
+                             break;
+                        case 3:
+                             listarLucroLiquido();
+                             break;
+                        case 4:
+                             listarAtividadeMaisRentavel();
+                             break;
+                        case 0:
+                             break;
+                        default:
+                                printf("Opcao invalida");
+                                getch();
+                                break;
+                        }
+                 }while(op != 0); 
+}
+
+void lucro(){         //menu de lucros
+               int op;
+                   
+                 do{
+                     system("cls");
+                     printf("\t\tLUCROS\n\n");
+                     printf("\tO que deseja fazer?\n");
+                     printf("---------------------------------------\n");
+                     printf("1 - Cadastrar                         |\n");
+                     printf("---------------------------------------\n");
+                     printf("2 - Listar                            |\n");
+                     printf("---------------------------------------\n");
+                     printf("3 - Editar                            |\n");
+                     printf("---------------------------------------\n");
+                     printf("4 - Excluir                           |\n");
+                     printf("---------------------------------------\n");
+                     printf("0 - Voltar                            |\n");
+                     printf("---------------------------------------\n");
+                     printf("OPCAO: ");
+                     scanf("%d",&op);
+                     
+                                           
+                     switch (op){
+                            
+                        case 1:
+                            cadastrarLucro(); 
+                            break;
+                        case 2:           
+                             listarLucro();
+                             break;
+                        case 3:
+                             editarLucro();
+                             break;
+                        case 4:
+                             excluirLucro();
+                             break;
+                        case 0:
+                             break;
+                        default:
+                                printf("Opcao invalida");
+                                getch();
+                                break;
+                        }
+                 }while(op != 0);      
+}
+
+void investimento(){         //menu de investimentos nas atividades
+               int op;
+                   
+                 do{
+                     system("cls");
+                     printf("\t\tINVESTIMENTOS\n\n");
+                     printf("\tO que deseja fazer?\n");
+                     printf("---------------------------------------\n");
+                     printf("1 - Cadastrar                         |\n");
+                     printf("---------------------------------------\n");
+                     printf("2 - Listar                            |\n");
+                     printf("---------------------------------------\n");
+                     printf("3 - Editar                            |\n");
+                     printf("---------------------------------------\n");
+                     printf("4 - Excluir                           |\n");
+                     printf("---------------------------------------\n");
+                     printf("0 - Voltar                            |\n");
+                     printf("---------------------------------------\n");
+                     printf("OPCAO: ");
+                     scanf("%d",&op);
+                                                 
+                     switch (op){
+                            
+                        case 1:
+                             cadastrarInvestimento();
+                            break;
+                        case 2:           
+                             listarInvestimento();   
+                             break;
+                        case 3:
+                             editarInvestimento();
+                             break;
+                        case 4:
+                             excluirInvestimento();
+                             break;
+                        case 0:
+                             break;
+                        default:
+                                printf("Opcao invalida");
+                                getch();
+                                break;
+                        }
+                 }while(op != 0); 
+}
+
+void producao(){            //meu de producao
+               int op;
+                   
+                 do{
+                     system("cls");
+                     printf("\t\tATIVIDADES\n\n");
+                     printf("\tO que deseja fazer?\n");
+                     printf("---------------------------------------\n");
+                     printf("1 - Cadastrar                         |\n");
+                     printf("---------------------------------------\n");
+                     printf("2 - Listar                            |\n");
+                     printf("---------------------------------------\n");
+                     printf("3 - Editar                            |\n");
+                     printf("---------------------------------------\n");
+                     printf("4 - Excluir                           |\n");
+                     printf("---------------------------------------\n");
+                     printf("0 - Voltar                            |\n");
+                     printf("---------------------------------------\n");
+                     printf("OPCAO: ");
+                     scanf("%d",&op);
+                              
+                     switch (op){
+                            
+                        case 1:
+                             cadastrarProducao();
+                            break;
+                        case 2:           
+                             listarProducao();   
+                             break;
+                        case 3:
+                             editarProducao();
+                             break;
+                        case 4:
+                             excluirProducao();        
+                             break;
+                        case 0:
+                             break;
+                        default:
+                                printf("Opcao invalida");
+                                getch();
+                                break;
+                        }
+                 }while(op != 0);  
+}
+
+void funcionario(){          //menu de funcionario
+          
+               int op;
+                   
+                 do{
+                     system("cls");
+                     printf("\t\tFUNCIONARIOS\n\n");
+                     printf("\tO que deseja fazer?\n");
+                     printf("---------------------------------------\n");
+                     printf("1 - Cadastra                          |\n");
+                     printf("---------------------------------------\n");
+                     printf("2 - Listar                            |\n");
+                     printf("---------------------------------------\n");
+                     printf("3 - Editar                            |\n");
+                     printf("---------------------------------------\n");
+                     printf("4 - Excluir                           |\n");
+                     printf("---------------------------------------\n");
+                     printf("0 - Voltar                            |\n");
+                     printf("---------------------------------------\n");
+                     printf("OPCAO: ");
+                     scanf("%d",&op);
+                                          
+                     switch (op){
+                            
+                        case 1:
+                             cadastrarFuncionario();
+                            break;
+                        case 2:           
+                             listarFuncionario();   
+                             break;
+                        case 3:
+                             editarFuncionario();
+                             break;
+                        case 4:
+                             excluirFuncionario();        
+                             break;
+                        case 0:
+                             break;
+                        default:
+                                printf("Opcao invalida");
+                                getch();
+                                break;
+                        }
+                 }while(op != 0); 
+}
+
+void usuario(){            //menu de usuarios
+               int op;
+                 do{
+                     system("cls");
+                     printf("\t\tUSUARIOS\n\n");
+                     printf("\tO que deseja fazer?\n");
+                     printf("---------------------------------------\n");
+                     printf("1 - Cadastra                          |\n");
+                     printf("---------------------------------------\n");
+                     printf("2 - Listar                            |\n");
+                     printf("---------------------------------------\n");
+                     printf("3 - Editar                            |\n");
+                     printf("---------------------------------------\n");
+                     printf("4 - Excluir                           |\n");
+                     printf("---------------------------------------\n");
+                     printf("0 - Voltar                            |\n");
+                     printf("---------------------------------------\n");
+                     printf("OPCAO: ");
+                     scanf("%d",&op);
+                                           
+                     switch (op){
+                            
+                        case 1:
+                             cadastrarUsuario();
+                            break;
+                        case 2:           
+                             listarUsuario();   
+                             break;
+                        case 3:
+                            editarUsuario();
+                             break;
+                        case 4:
+                             excluirUsuario();
+                             break;
+                        case 0:
+                             break;
+                        default:
+                                printf("Opcao invalida");
+                                getch();
+                                break;
+                        }
+                 }while(op != 0);                  
+}
+
+void menu(int perfil){      //menu geral
+              
+               int op;
+               int cont,cont1;
+                   
+                 do{
+                     system("cls");
+                     printf("\t\tMENU\n\n");
+                     printf("\tO que deseja fazer?\n");
+                     printf("---------------------------------------\n");
+                     printf("1 - Usuarios                          |\n");
+                     printf("---------------------------------------\n");
+                     printf("2 - Funcionarios                      |\n");
+                     printf("---------------------------------------\n");
+                     printf("3 - Atividade de Producao             |\n");
+                     printf("---------------------------------------\n");
+                     printf("4 - Investimentos(Atividades Producao)|\n");
+                     printf("---------------------------------------\n");
+                     printf("5 - Lucros                            |\n");
+                     printf("---------------------------------------\n");
+                     printf("6 - Relatorios                        |\n");
+                     printf("---------------------------------------\n");
+                     printf("0 - Sair                              |\n");
+                     printf("---------------------------------------\n");
+                     printf("OPCAO: ");
+                     scanf("%d",&op);
+                                             
+                     switch (op){
+                            
+                        case 1:
+                           if(perfil==1){ //permisoes de acesso tem que ser de nivel administrador para acessar o conteudo
+                            usuario();
+                            }else{printf("SEM PREMICAO PARA ACESSAR!");getch();}
+                            break;
+                        case 2:  
+                            if(perfil==1){         
+                             funcionario();
+                             }else{printf("SEM PREMICAO PARA ACESSAR!");getch();}
+                             break;
+                        case 3:
+                             if((perfil==1)||(perfil==2)){         
+                             producao();
+                             }else{printf("SEM PREMICAO PARA ACESSAR!");getch();}                            
+                             break;
+                        case 4:
+                             if((perfil==1)||(perfil==2)){         
+                             investimento();
+                             }else{printf("SEM PREMICAO PARA ACESSAR!");getch();}
+                             break;
+                             
+                        case 5:
+                             if((perfil==1)||(perfil==2)){         
+                             lucro();
+                             }else{printf("SEM PREMICAO PARA ACESSAR!");getch();}
+                             break;
+
+                        case 6:
+                             if(perfil==1){         
+                             relatorios();
+                             }else{printf("SEM PREMICAO PARA ACESSAR!");getch();}
+                             break;
+
+                        case 0:
+                             
+                             break;
+                        default:
+                                printf("Opcao invalida");
+                                getch();
+                                break;
+                        }
+                 }while(op != 0); 
+}
+
+void login(){    // funcao de login
+     
+     char login[30], senha[30];
+     int validou=1,msg=0;
+     
+     while(validou==1){ 
+     if(msg!=0){
+              printf("\nTENTE NOVAMENTE");
+              getch();
+       } 
+     system("cls"); 
+     printf("\t\t\tLOGIN: \n\n");
+     printf("Login: ");
+     fflush(stdin);
+     gets(login);
+     printf("\nSenha: ");
+     fflush(stdin);
+     gets(senha);
+     pUsuario = fopen("usuario.txt","rb");
+     while(!feof(pUsuario)){
+       if(fread(&u,sizeof(Usuario),1,pUsuario)){
+         if((strcmp(login,u.usuario) && (senha,u.senha))){ 
+            msg=1;             
+          }else{ 
+               validou=0;
+               
+                 menu(u.perfil);
+                 }
+           }
+       }
+    }  
+}
+
+void primeiroCadastro(){ //funcao de primeiro cadstro
+                                 //na primeira execucao o arquivo vasi estar vazio
+                                 //entao cadastra-se um usuario para acessar o sistema
+     pUsuario = fopen("usuario.txt","r");
+     char c;
+          c = getc(pUsuario); // Lê o primeiro caracter 
+          if (feof(pUsuario)){ // Verifica se o caracter lido é o fim de arquivo, 
+                                 //caso seja verdadeiro ele cadastra um adm
+             fclose(pUsuario);
+              //system("cls");
+              printf("NAO FOI ENCONTRADO NENHUM REGISTRO NO ARQUIVO\n");
+              printf("PRIMEIRO CADASTRO DE USUARIO: \n");
+              pUsuario = fopen("usuario.txt","ab");
+              if(pUsuario == NULL){
+              printf("\nERRO AO ABRIR ARQUIVO!");
+                  }else {
+                 u.codigo = buscarContadorUsuario();
+                 printf("\nCADASTRANDO USUARIO DE CODIGO %d", u.codigo);
+                 printf("\nNOME: ");
+                 fflush(stdin);
+                 gets(u.nome);
+                 printf("\nSOBRENOME: ");
+                 fflush(stdin);
+                 gets(u.sobrenome);
+                 printf("\nLOGIN: ");
+                 fflush(stdin);
+                 gets(u.usuario);
+                 printf("\nSENHA: ");
+                 fflush(stdin);
+                 gets(u.senha);
+                 printf("\nCADASTRO DE PERFIL!\n1 = ADMINISTRADOR\n2 = USUARIO");
+                 printf("\nPREFIL: ");                 
+                 scanf("%d", &u.perfil);
+                 u.situacao=0;
+                 fwrite(&u, sizeof(Usuario), 1, pUsuario);
+                 printf("\nUSUARIO GRAVADO!...\n");
+                 
+                 getch();      
+                 system("cls");
+                 }
+     fclose(pUsuario);
+     }
+} 
+     
+int main(){
+    inicializarArquivos();
+    primeiroCadastro();
+    login();
+}
